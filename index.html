@@ -2,11 +2,110 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja strona testowa</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta name="theme-color" content="#ffffff">
+
+    <title>Test PWA</title>
+
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Hello world</h1>
-    <p>Moja strona działa poprawnie.</p>
+    <h1>Hello World!</h1>
+
+    <p>To jest testowa aplikacja PWA.</p>
+
+    <button id="installButton" hidden>
+        Zainstaluj aplikację
+    </button>
+
+    <p id="status"></p>
+
+    <script>
+        const installButton = document.getElementById("installButton");
+        const statusElement = document.getElementById("status");
+
+        let installPrompt = null;
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register(
+                        "./service-worker.js"
+                    );
+
+                    console.log(
+                        "Service Worker zarejestrowany:",
+                        registration.scope
+                    );
+
+                    statusElement.textContent =
+                        "Service Worker działa poprawnie.";
+                } catch (error) {
+                    console.error(
+                        "Błąd rejestracji Service Workera:",
+                        error
+                    );
+
+                    statusElement.textContent =
+                        "Nie udało się uruchomić Service Workera.";
+                }
+            });
+        }
+
+        window.addEventListener("beforeinstallprompt", (event) => {
+            event.preventDefault();
+
+            installPrompt = event;
+            installButton.hidden = false;
+        });
+
+        installButton.addEventListener("click", async () => {
+            if (!installPrompt) {
+                return;
+            }
+
+            installPrompt.prompt();
+
+            const result = await installPrompt.userChoice;
+
+            console.log("Wynik instalacji:", result.outcome);
+
+            installPrompt = null;
+            installButton.hidden = true;
+        });
+
+        window.addEventListener("appinstalled", () => {
+            statusElement.textContent =
+                "Aplikacja została zainstalowana.";
+
+            installButton.hidden = true;
+        });
+    </script>
 </body>
 </html>
